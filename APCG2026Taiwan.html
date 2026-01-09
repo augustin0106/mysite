@@ -14,6 +14,7 @@
             --neom-blue: #00BFFF;
             --bg-dark: #121212;
             --glass-bg: rgba(255, 255, 255, 0.1);
+            --trial-color: #F59E0B; /* 試玩按鈕顏色 */
         }
 
         body {
@@ -102,6 +103,11 @@
             margin-bottom: 20px;
             cursor: pointer;
             width: 250px;
+            appearance: none; /* 移除預設箭頭樣式以便自定義 */
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300BFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7em top 50%;
+            background-size: .65em auto;
         }
 
         button {
@@ -120,19 +126,50 @@
             background: var(--neom-blue);
             color: #000;
             box-shadow: 0 0 15px var(--neom-blue);
+            width: 250px;
         }
         .btn-start:hover {
             transform: scale(1.05);
             background: white;
         }
 
+        .btn-trial {
+            background: var(--trial-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--trial-color);
+            width: 250px;
+        }
+        .btn-trial:hover {
+            transform: scale(1.05);
+            background: #FFD700;
+        }
+
         .btn-secondary {
             background: transparent;
             border: 1px solid var(--neom-silver);
             color: var(--neom-silver);
+            font-size: 0.9rem;
+            padding: 10px 20px;
         }
         .btn-secondary:hover {
             background: rgba(255,255,255,0.1);
+        }
+
+        /* 分隔線 */
+        .divider {
+            margin: 15px 0;
+            font-size: 0.8rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            width: 250px;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #555;
+            margin: 0 10px;
         }
 
         /* 遊戲畫面 */
@@ -238,16 +275,23 @@
         <div class="subtitle">製作者：駿佾老師</div>
         
         <div class="story-box">
-            NEOM 是沙烏地阿拉伯西北部的跨境城市計畫，意為「新未來」。其中 <strong>The Line</strong> 是一座零碳排放、無汽車的線性垂直城市。<br><br>
-            今天，透過你的知識與反應，來決定誰能建造出最穩固的未來！<br>
-            <span style="color:var(--neom-gold); font-size: 0.8em;">(注意：遊戲積分越低者，代表建設失敗，需優先上台報告！)</span>
+            NEOM 是沙烏地阿拉伯西北部的跨境城市計畫，意為「新未來」。<br>
+            <strong>The Line</strong> 是一座零碳排放、無汽車的線性垂直城市。<br><br>
+            <span style="color:var(--neom-gold); font-size: 0.9em;">注意：遊戲積分越低者，代表建設失敗，需優先上台報告！</span>
         </div>
 
+        <!-- 學生登入區 -->
         <select id="player-select">
             <option value="" disabled selected>請選擇你的名字...</option>
         </select>
+        <button class="btn-start" onclick="app.startGame(false)">開始建造</button>
 
-        <button class="btn-start" onclick="game.init()">開始建造</button>
+        <div class="divider">OR</div>
+
+        <!-- 師長試玩區 -->
+        <button class="btn-trial" onclick="app.startGame(true)">師長/家長試玩 (不計分)</button>
+
+        <br>
         <button class="btn-secondary" onclick="app.showLeaderboard()">查看報告順序</button>
     </div>
 
@@ -285,10 +329,10 @@
 
     <script>
         // --- 設定區 ---
-        // ⚠️ 這裡請填入部署後的 Web App URL (以 https://script.google.com 開頭)
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7FM-CMc5cXNU6zOEJCsllszCR_sIAQtooTPH3fm5S/dev'; 
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7FM-CMc5cXNU6zOEJCsllszCR_sIAQtooTPH3fm5S/exec'; // 修正為 exec (如果需要測試環境請改回 dev)
         
-        const STUDENTS_STR = "劉妍希陳品伊吳昀霏楊子瑤王家蔚蔡尚倢侯宗佑廖采渝洪沛歆黃旭均陳薏安陳心安彭星瑔李昀臻廖文匯”;
+        // 移除字串中的 "師長試玩"，因為已有專用按鈕
+        const STUDENTS_STR = "劉妍希陳品伊吳昀霏楊子瑤王家蔚蔡尚倢侯宗佑廖采渝洪沛歆黃旭均陳薏安陳心安彭星瑔李昀臻廖文匯";
 
         // --- 資料區 ---
         const QUESTIONS = [
@@ -317,6 +361,7 @@
         // --- 應用程式邏輯 ---
         const app = {
             playerName: "",
+            isTrial: false,
             
             init: function() {
                 this.parseStudents();
@@ -335,7 +380,6 @@
             },
 
             setupEvents: function() {
-                // Resize handling
                 window.addEventListener('resize', () => {
                     if(game.isRunning) game.resize();
                 });
@@ -350,6 +394,25 @@
                 this.showScreen('screen-home');
             },
 
+            // 新增：統一開始遊戲入口
+            startGame: function(isTrial) {
+                this.isTrial = isTrial;
+
+                if (isTrial) {
+                    this.playerName = "師長/家長試玩";
+                } else {
+                    const nameSelect = document.getElementById('player-select');
+                    if(!nameSelect.value) {
+                        alert("請先選擇你的名字！");
+                        return;
+                    }
+                    this.playerName = nameSelect.value;
+                }
+
+                // 進入遊戲
+                game.init();
+            },
+
             showLeaderboard: function() {
                 this.showScreen('screen-leaderboard');
                 this.fetchLeaderboard();
@@ -361,20 +424,26 @@
                     return;
                 }
 
+                // 如果是試玩，在顯示上告知，但仍可選擇是否傳送
+                // 這裡選擇傳送，但名稱固定，方便老師在後台篩選
+                const displayName = this.isTrial ? "師長/家長試玩" : this.playerName;
+
                 const data = {
-                    name: this.playerName,
-                    score: score
+                    name: displayName,
+                    score: score,
+                    isTrial: this.isTrial // 增加標記，若後端有處理可使用
                 };
 
-                // 使用 fetch 發送 POST 請求
                 fetch(GAS_API_URL + "?action=save", {
                     method: "POST",
                     body: JSON.stringify(data),
-                    headers: { "Content-Type": "text/plain;charset=utf-8" } // 避免 CORS 預檢
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
                 })
                 .then(res => res.json())
                 .then(json => {
-                    if(json.status === "skipped") {
+                    if(this.isTrial) {
+                        document.getElementById('upload-status').innerText = "試玩結束！數據僅供參考。";
+                    } else if(json.status === "skipped") {
                         document.getElementById('upload-status').innerText = "您已上傳過成績，本次僅作練習紀錄。";
                     } else {
                         document.getElementById('upload-status').innerText = "數據上傳成功！";
@@ -382,7 +451,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    document.getElementById('upload-status').innerText = "上傳失敗，請檢查網路或 URL。";
+                    document.getElementById('upload-status').innerText = "上傳連線異常 (但遊戲已完成)";
                 });
             },
 
@@ -409,7 +478,7 @@
                         }
                         let html = "";
                         json.data.forEach((item, index) => {
-                            // 低分者排前面 (Index 0 is lowest score)
+                            // 低分者排前面
                             const isFirst = index === 0;
                             html += `
                                 <div class="leaderboard-item ${isFirst ? 'rank-high' : ''}">
@@ -439,35 +508,28 @@
             blocks: [],
             currentBlock: null,
             baseBlock: null,
-            direction: 1, // 1 for right, -1 for left
-            speed: 2, // Base speed
+            direction: 1, 
+            speed: 2, 
             blockHeight: 30,
             initialWidth: 200,
             cameraY: 0,
             
-            // Question State
             isAnswering: false,
-            nextBlockCondition: 'normal', // 'normal' or 'unstable'
+            nextBlockCondition: 'normal',
 
             init: function() {
-                const nameSelect = document.getElementById('player-select');
-                if(!nameSelect.value) {
-                    alert("請先選擇名字！");
-                    return;
-                }
-                app.playerName = nameSelect.value;
-                app.showScreen('screen-game'); // 這裡確保遊戲畫面顯示
+                // 不再檢查 playerName，因為由 app.startGame 處理
+                app.showScreen('screen-game');
                 
                 this.ctx = this.canvas.getContext('2d');
                 this.resize();
                 this.reset();
-                this.askQuestion(); // Start with a question
+                this.askQuestion(); 
             },
 
             resize: function() {
                 this.canvas.width = window.innerWidth;
                 this.canvas.height = window.innerHeight;
-                // Center the base
                 if(this.blocks.length > 0) {
                     this.blocks[0].x = (this.canvas.width - this.blocks[0].width) / 2;
                 }
@@ -480,24 +542,20 @@
                 this.cameraY = 0;
                 document.getElementById('score-display').innerText = this.score;
 
-                // Create Base Block
                 this.baseBlock = {
                     x: (this.canvas.width - this.initialWidth) / 2,
                     y: this.canvas.height - 50,
                     width: this.initialWidth,
                     height: 50,
-                    color: '#DAA520' // Base Gold
+                    color: '#DAA520' 
                 };
                 this.blocks.push(this.baseBlock);
             },
 
             askQuestion: function() {
                 this.isAnswering = true;
-                // 在顯示題目時，我們希望遊戲背景仍然可見，
-                // 但因為 app.showScreen 是互斥的，這裡直接操作 class
                 document.getElementById('screen-question').classList.remove('hidden');
                 
-                // Random Question
                 const qData = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
                 document.getElementById('q-text').innerText = `[問答] ${qData.q}`;
                 
@@ -516,11 +574,7 @@
             },
 
             handleAnswer: function(isCorrect) {
-                // 隱藏題目
                 document.getElementById('screen-question').classList.add('hidden');
-                
-                // [BUG FIX] 確保遊戲畫面是顯示的
-                // 這裡使用 app.showScreen 確保其他畫面（如首頁）被隱藏，且 game 被顯示
                 app.showScreen('screen-game');
                 
                 this.isAnswering = false;
@@ -541,12 +595,11 @@
             spawnBlock: function() {
                 const prevBlock = this.blocks[this.blocks.length - 1];
                 let newWidth = prevBlock.width;
-                let newSpeed = 3 + (this.score * 0.5); // Speed increases with score
+                let newSpeed = 3 + (this.score * 0.5); 
 
-                // Penalty for wrong answer
                 if (this.nextBlockCondition === 'unstable') {
-                    newWidth = newWidth * 0.7; // Shrink
-                    newSpeed += 4; // Faster
+                    newWidth = newWidth * 0.7; 
+                    newSpeed += 4; 
                 }
 
                 this.currentBlock = {
@@ -554,11 +607,10 @@
                     y: prevBlock.y - this.blockHeight,
                     width: newWidth,
                     height: this.blockHeight,
-                    color: this.nextBlockCondition === 'normal' ? '#00BFFF' : '#FF4500', // Blue or Red
+                    color: this.nextBlockCondition === 'normal' ? '#00BFFF' : '#FF4500', 
                     velocity: newSpeed
                 };
                 
-                // Randomize start side
                 if (Math.random() > 0.5) {
                     this.currentBlock.x = -this.currentBlock.width;
                     this.direction = 1;
@@ -574,11 +626,9 @@
                 const prevBlock = this.blocks[this.blocks.length - 1];
                 const block = this.currentBlock;
 
-                // Calculate overlap
                 const dist = block.x - prevBlock.x;
                 const absDist = Math.abs(dist);
 
-                // Check Game Over (Missed completely)
                 if (absDist >= prevBlock.width) {
                     this.gameOver();
                     return;
@@ -586,7 +636,6 @@
                 
                 let placedWidth = prevBlock.width - absDist;
                 
-                // Just use the math intersection for clean data
                 const overlapX = Math.max(block.x, prevBlock.x);
                 const overlapW = Math.min(block.x + block.width, prevBlock.x + prevBlock.width) - overlapX;
                 
@@ -597,12 +646,10 @@
                 this.score++;
                 document.getElementById('score-display').innerText = this.score;
                 
-                // Move Camera if stack gets high
                 if (this.blocks.length > 5) {
                     this.cameraY += this.blockHeight;
                 }
 
-                // Next round
                 this.currentBlock = null;
                 this.askQuestion();
             },
@@ -612,7 +659,6 @@
 
                 this.currentBlock.x += this.currentBlock.velocity * this.direction;
 
-                // Bounce off walls
                 if (this.currentBlock.x + this.currentBlock.width > this.canvas.width) {
                     this.direction = -1;
                 } else if (this.currentBlock.x < 0) {
@@ -621,18 +667,14 @@
             },
 
             draw: function() {
-                // Clear
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
                 this.ctx.save();
-                // Apply Camera
                 this.ctx.translate(0, this.cameraY);
 
-                // Draw Blocks
                 this.blocks.forEach(b => {
                     this.ctx.fillStyle = b.color;
                     this.ctx.fillRect(b.x, b.y, b.width, b.height);
-                    // NEOM Glow effect
                     this.ctx.shadowBlur = 10;
                     this.ctx.shadowColor = b.color;
                     this.ctx.strokeStyle = '#fff';
@@ -641,7 +683,6 @@
                     this.ctx.shadowBlur = 0;
                 });
 
-                // Draw Current Moving Block
                 if (this.currentBlock) {
                     const b = this.currentBlock;
                     this.ctx.fillStyle = b.color;
@@ -674,15 +715,14 @@
         });
 
         document.getElementById('game-canvas').addEventListener('mousedown', (e) => {
-             if (app.playerName && !game.isAnswering && game.currentBlock) {
+            if (app.playerName && !game.isAnswering && game.currentBlock) {
                 game.placeBlock();
             }
         });
         
-        // Touch support
         document.getElementById('game-canvas').addEventListener('touchstart', (e) => {
-             e.preventDefault(); // prevent scroll
-             if (app.playerName && !game.isAnswering && game.currentBlock) {
+            e.preventDefault(); 
+            if (app.playerName && !game.isAnswering && game.currentBlock) {
                 game.placeBlock();
             }
         }, {passive: false});
